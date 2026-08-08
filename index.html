@@ -7,145 +7,82 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="app-container">
-    <header class="app-header">
-      <div class="brand">
-        <h1>Punto de Venta</h1>
-        <p class="subtitle">Sistema de Control de Caja e Inventario</p>
-      </div>
-      <div class="rate-card">
-        <span class="rate-label">Tasa del Día (BCV)</span>
-        <div class="rate-value-group">
-          <span class="rate-currency">1 USD =</span>
-          <strong id="rate-display">0.00 BS</strong>
-        </div>
-        <button id="btn-change-rate" class="btn-rate-update">Cambiar Tasa</button>
-      </div>
+  <div class="container">
+    <header>
+      <h1>Sistema de Punto de Venta</h1>
     </header>
 
-    <main class="main-layout">
-      <!-- Sección Izquierda: Búsqueda, Catálogo y Gestión -->
+    <div class="main-content">
       <section class="products-section">
-        <div class="search-card">
-          <label for="barcode-input">Escáner de Código / Búsqueda</label>
-          <div class="input-wrapper">
-            <input type="text" id="barcode-input" placeholder="Escanea o escribe el código de barras..." autofocus autocomplete="off">
-          </div>
+        <div class="search-box">
+          <input type="text" id="barcode-input" placeholder="Escanear código de barras o ingresar código..." autofocus>
         </div>
 
-        <!-- Formulario Gestión de Productos -->
-        <div class="catalog-card form-card">
-          <div class="card-header flex-header">
-            <h2 id="form-title">Crear Nuevo Producto</h2>
-            <button id="btn-cancel-edit" class="btn-secondary hidden">Cancelar Edición</button>
-          </div>
-          <form id="product-form" class="product-form-grid">
-            <input type="hidden" id="product-id">
-            <div class="form-group">
-              <label for="product-barcode">Código:</label>
-              <input type="text" id="product-barcode" class="custom-input" placeholder="Ej: 7501001" required>
-            </div>
-            <div class="form-group">
-              <label for="product-name">Nombre:</label>
-              <input type="text" id="product-name" class="custom-input" placeholder="Ej: Harina de Maíz" required>
-            </div>
-            <div class="form-group">
-              <label for="product-price">Precio ($ USD):</label>
-              <input type="number" id="product-price" class="custom-input" step="0.01" min="0.01" placeholder="Ej: 1.20" required>
-            </div>
-            <button type="submit" id="btn-save-product" class="btn-primary">Guardar Producto</button>
-          </form>
-        </div>
-
-        <!-- Catálogo de Productos -->
-        <div class="catalog-card">
-          <div class="card-header">
-            <h2>Catálogo de Productos</h2>
-          </div>
+        <div class="catalog">
+          <h2>Catálogo de Productos</h2>
           <div id="product-list" class="product-grid"></div>
         </div>
       </section>
 
-      <!-- Sección Derecha: Carrito y Cobro -->
       <section class="cart-section">
-        <div class="card-header">
-          <h2>Carrito de Compra</h2>
-        </div>
-
-        <div class="table-container">
-          <table id="cart-table">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Cant.</th>
-                <th>USD</th>
-                <th>BS</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="cart-body"></tbody>
-          </table>
-        </div>
+        <h2>Carrito de Compra</h2>
+        <table id="cart-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cant.</th>
+              <th>Precio</th>
+              <th>Total</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="cart-body"></tbody>
+        </table>
 
         <div class="cart-summary">
-          <div class="summary-line">
-            <span>Total USD:</span>
-            <span id="cart-total-usd" class="total-usd-text">$0.00</span>
-          </div>
-          <div class="summary-line bs-highlight">
-            <span>Total BS:</span>
-            <span id="cart-total-bs" class="total-bs-text">0.00 BS</span>
+          <div class="total-row">
+            <span>Total a pagar:</span>
+            <span id="cart-total">$0.00</span>
           </div>
 
-          <div class="payment-box">
-            <div class="form-group">
-              <label for="payment-method">Método de Pago:</label>
-              <select id="payment-method" class="custom-select">
-                <option value="Efectivo">Efectivo</option>
-                <option value="Punto de Venta">Punto de Venta (Tarjeta)</option>
-                <option value="BioPago">BioPago</option>
-                <option value="Pago Móvil">Pago Móvil</option>
-              </select>
-            </div>
-
-            <div id="pago-movil-container" class="form-group hidden">
-              <label for="pago-movil-ref">Referencia Pago Móvil (Últimos 4 dígitos):</label>
-              <input type="text" id="pago-movil-ref" maxlength="4" placeholder="Ej: 1234" class="custom-input" pattern="[0-9]{4}">
-            </div>
+          <div class="payment-method-container">
+            <label for="payment-method">Método de Pago:</label>
+            <select id="payment-method">
+              <option value="Efectivo">Efectivo</option>
+              <option value="Punto de Venta">Punto de Venta (Tarjeta)</option>
+              <option value="BioPago">BioPago</option>
+              <option value="Pago Móvil">Pago Móvil</option>
+            </select>
           </div>
 
-          <button id="btn-checkout" class="btn-checkout">Procesar Pago y Facturar</button>
+          <div id="pago-movil-container" class="pago-movil-input-group hidden">
+            <label for="pago-movil-ref">Referencia Pago Móvil (Últimos 4 dígitos):</label>
+            <input type="text" id="pago-movil-ref" maxlength="4" placeholder="Ej: 1234" pattern="[0-9]{4}">
+          </div>
+
+          <button id="btn-checkout" class="btn-primary">Procesar Pago y Generar Factura</button>
         </div>
       </section>
-    </main>
+    </div>
 
     <!-- Modal Factura -->
-    <div id="receipt-modal" class="modal-backdrop hidden">
-      <div class="modal-card">
-        <div id="receipt-print-area" class="receipt-content">
-          <div class="receipt-header">
-            <h3>COMPROBANTE DE VENTA</h3>
-            <p id="receipt-date"></p>
-            <p id="receipt-rate-info" class="receipt-rate"></p>
-          </div>
-          <div class="divider"></div>
-          <div id="receipt-items" class="receipt-items-list"></div>
-          <div class="divider"></div>
-          <div class="receipt-info-group">
-            <p><strong>Método de Pago:</strong> <span id="receipt-payment-method"></span></p>
-            <p id="receipt-ref-row" class="hidden"><strong>Referencia:</strong> <span id="receipt-ref"></span></p>
-          </div>
-          <div class="divider"></div>
-          <div class="receipt-totals">
-            <p class="total-line"><span>TOTAL USD:</span> <strong id="receipt-total-usd"></strong></p>
-            <p class="total-line bs-text"><span>TOTAL BS:</span> <strong id="receipt-total-bs"></strong></p>
-          </div>
-          <div class="divider"></div>
+    <div id="receipt-modal" class="modal hidden">
+      <div class="modal-content">
+        <div id="receipt-print-area">
+          <h3>FACTURA DE VENTA</h3>
+          <p id="receipt-date"></p>
+          <hr>
+          <div id="receipt-items"></div>
+          <hr>
+          <p><strong>Método de Pago:</strong> <span id="receipt-payment-method"></span></p>
+          <p id="receipt-ref-row" class="hidden"><strong>Referencia:</strong> <span id="receipt-ref"></span></p>
+          <p class="receipt-total-line"><strong>TOTAL PAGADO:</strong> <span id="receipt-total"></span></p>
+          <hr>
           <p class="receipt-footer">¡Gracias por su compra!</p>
         </div>
         <div class="modal-actions">
-          <button onclick="window.print()" class="btn-modal-print">Imprimir Factura</button>
-          <button id="btn-close-modal" class="btn-modal-close">Cerrar</button>
+          <button onclick="window.print()" class="btn-secondary">Imprimir Factura</button>
+          <button id="btn-close-modal" class="btn-primary">Cerrar</button>
         </div>
       </div>
     </div>
