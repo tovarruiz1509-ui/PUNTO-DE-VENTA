@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Punto de Venta - Supermercado</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="pos-container">
+    <!-- PANEL IZQUIERDO: Catálogo y Búsqueda -->
+    <div class="pos-left">
+      <header class="header">
+        <div>
+          <h1>🛒 SuperPOS</h1>
+          <p>Sistema de Punto de Venta</p>
+        </div>
+        <div class="header-acciones">
+          <button id="btn-ver-historial" class="btn-secundario">📊 Historial del Día</button>
+          <button id="btn-abrir-modal-prod" class="btn-nuevo">+ Nuevo Producto</button>
+        </div>
+      </header>
+
+      <div class="search-box">
+        <input type="text" id="input-buscar" placeholder="🔍 Buscar producto por nombre o código...">
+      </div>
+
+      <div class="productos-grid" id="productos-grid">
+        <!-- Los productos se cargan dinámicamente con JavaScript -->
+      </div>
+    </div>
+
+    <!-- PANEL DERECHO: Carrito y Cobro -->
+    <div class="pos-right">
+      <h2>Orden Actual</h2>
+      
+      <div class="tabla-container">
+        <table class="tabla-pos">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cant.</th>
+              <th>Precio</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="lista-carrito">
+            <!-- Items agregados -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="totales-panel">
+        <div class="fila-total">
+          <span>Subtotal:</span>
+          <span id="subtotal">$0.00</span>
+        </div>
+        <div class="fila-total">
+          <span>IVA (16%):</span>
+          <span id="impuesto">$0.00</span>
+        </div>
+        <div class="fila-total gran-total">
+          <span>TOTAL:</span>
+          <span id="total">$0.00</span>
+        </div>
+      </div>
+
+      <div class="pago-panel">
+        <div class="input-pago">
+          <label for="pago-cliente">Monto Recibido:</label>
+          <input type="number" id="pago-cliente" placeholder="0.00" step="0.01">
+        </div>
+        <div class="vuelto-box">
+          <span>Cambio / Vuelto:</span>
+          <strong id="vuelto">$0.00</strong>
+        </div>
+        <button id="btn-cobrar" class="btn-cobrar" disabled>FINALIZAR VENTA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PARA AGREGAR NUEVO PRODUCTO -->
+  <div id="modal-producto" class="modal">
+    <div class="modal-contenido modal-form">
+      <h2>Añadir Nuevo Producto</h2>
+      <form id="form-nuevo-producto">
+        <div class="campo">
+          <label>Nombre del producto:</label>
+          <input type="text" id="prod-nombre" placeholder="Ej: Cereal de Maíz" required>
+        </div>
+        <div class="campo">
+          <label>Precio ($):</label>
+          <input type="number" id="prod-precio" step="0.01" placeholder="Ej: 3.50" required>
+        </div>
+        <div class="campo">
+          <label>Icono / Emoji:</label>
+          <input type="text" id="prod-icono" placeholder="Ej: 🥣" value="📦" required>
+        </div>
+        <div class="acciones-modal">
+          <button type="button" onclick="cerrarModalProducto()" class="btn-cancelar">Cancelar</button>
+          <button type="submit" class="btn-guardar">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE HISTORIAL DE VENTAS -->
+  <div id="modal-historial" class="modal">
+    <div class="modal-contenido modal-historial-box">
+      <h2>📊 Historial de Ventas del Día</h2>
+      
+      <div class="resumen-ventas">
+        <div class="tarjeta-resumen">
+          <span>Total de Ventas</span>
+          <strong id="resumen-cant-ventas">0</strong>
+        </div>
+        <div class="tarjeta-resumen verde">
+          <span>Ingresos Totales</span>
+          <strong id="resumen-ingresos">$0.00</strong>
+        </div>
+      </div>
+
+      <div class="tabla-historial-container">
+        <table class="tabla-pos">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Items</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="lista-historial">
+            <!-- Se cargan dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="acciones-modal">
+        <button type="button" onclick="limpiarHistorial()" class="btn-eliminar-historial">Borrar Historial</button>
+        <button type="button" onclick="cerrarHistorial()" class="btn-cancelar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE TICKET / RECIBO -->
+  <div id="modal-ticket" class="modal">
+    <div class="modal-contenido ticket-print">
+      <h2>*** TICKET DE COMPRA ***</h2>
+      <p id="ticket-fecha"></p>
+      <hr>
+      <div id="ticket-items"></div>
+      <hr>
+      <div id="ticket-totales"></div>
+      <hr>
+      <p class="gracias">¡Gracias por su compra!</p>
+      <button onclick="cerrarTicket()" class="btn-cerrar">Nueva Venta</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
