@@ -22,11 +22,11 @@
       </header>
 
       <div class="search-box">
-        <input type="text" id="input-buscar" placeholder="🔍 Buscar producto por nombre o código...">
+        <input type="text" id="input-buscar" placeholder="🔍 Buscar nombre o escanear código de barras (Presiona Enter)..." autofocus>
       </div>
 
       <div class="productos-grid" id="productos-grid">
-        <!-- Los productos se cargan dinámicamente con JavaScript -->
+        <!-- Los productos se cargan dinámicamente -->
       </div>
     </div>
 
@@ -80,11 +80,15 @@
     </div>
   </div>
 
-  <!-- MODAL PARA AGREGAR NUEVO PRODUCTO -->
+  <!-- MODAL NUEVO PRODUCTO -->
   <div id="modal-producto" class="modal">
     <div class="modal-contenido modal-form">
       <h2>Añadir Nuevo Producto</h2>
       <form id="form-nuevo-producto">
+        <div class="campo">
+          <label>Código de Barras:</label>
+          <input type="text" id="prod-codigo" placeholder="Ej: 750123456789">
+        </div>
         <div class="campo">
           <label>Nombre del producto:</label>
           <input type="text" id="prod-nombre" placeholder="Ej: Cereal de Maíz" required>
@@ -100,6 +104,36 @@
         <div class="acciones-modal">
           <button type="button" onclick="cerrarModalProducto()" class="btn-cancelar">Cancelar</button>
           <button type="submit" class="btn-guardar">Guardar Producto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR PRODUCTO -->
+  <div id="modal-editar-producto" class="modal">
+    <div class="modal-contenido modal-form">
+      <h2>✏️ Editar Producto</h2>
+      <form id="form-editar-producto">
+        <input type="hidden" id="edit-prod-id">
+        <div class="campo">
+          <label>Código de Barras:</label>
+          <input type="text" id="edit-prod-codigo">
+        </div>
+        <div class="campo">
+          <label>Nombre del producto:</label>
+          <input type="text" id="edit-prod-nombre" required>
+        </div>
+        <div class="campo">
+          <label>Precio ($):</label>
+          <input type="number" id="edit-prod-precio" step="0.01" required>
+        </div>
+        <div class="campo">
+          <label>Icono / Emoji:</label>
+          <input type="text" id="edit-prod-icono" required>
+        </div>
+        <div class="acciones-modal">
+          <button type="button" onclick="cerrarModalEditar()" class="btn-cancelar">Cancelar</button>
+          <button type="submit" class="btn-guardar">Guardar Cambios</button>
         </div>
       </form>
     </div>

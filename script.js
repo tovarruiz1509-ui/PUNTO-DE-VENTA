@@ -1,21 +1,20 @@
-// Lista por defecto (se usa solo si el almacenamiento local está vacío)
+// Lista por defecto con códigos de barras
 const productosPorDefecto = [
-  { id: 101, nombre: "Leche 1L", precio: 1.50, icono: "🥛" },
-  { id: 102, nombre: "Pan Molde", precio: 2.20, icono: "🍞" },
-  { id: 103, nombre: "Huevos x12", precio: 3.00, icono: "🥚" },
-  { id: 104, nombre: "Manzana 1Kg", precio: 2.50, icono: "🍎" },
-  { id: 105, nombre: "Arroz 1Kg", precio: 1.10, icono: "🌾" },
-  { id: 106, nombre: "Café 250g", precio: 4.50, icono: "☕" },
-  { id: 107, nombre: "Queso 500g", precio: 3.80, icono: "🧀" },
-  { id: 108, nombre: "Agua 1.5L", precio: 0.80, icono: "💧" },
+  { id: 101, codigo: "7501001", nombre: "Leche 1L", precio: 1.50, icono: "🥛" },
+  { id: 102, codigo: "7501002", nombre: "Pan Molde", precio: 2.20, icono: "🍞" },
+  { id: 103, codigo: "7501003", nombre: "Huevos x12", precio: 3.00, icono: "🥚" },
+  { id: 104, codigo: "7501004", nombre: "Manzana 1Kg", precio: 2.50, icono: "🍎" },
+  { id: 105, codigo: "7501005", nombre: "Arroz 1Kg", precio: 1.10, icono: "🌾" },
+  { id: 106, codigo: "7501006", nombre: "Café 250g", precio: 4.50, icono: "☕" },
+  { id: 107, codigo: "7501007", nombre: "Queso 500g", precio: 3.80, icono: "🧀" },
+  { id: 108, codigo: "7501008", nombre: "Agua 1.5L", precio: 0.80, icono: "💧" },
 ];
 
-// Cargar productos e historial desde LocalStorage
 let productos = JSON.parse(localStorage.getItem("pos_productos")) || productosPorDefecto;
 let historialVentas = JSON.parse(localStorage.getItem("historial_ventas_pos")) || [];
 let carrito = [];
 
-// Elementos del DOM
+// Elementos DOM
 const gridProductos = document.getElementById("productos-grid");
 const listaCarrito = document.getElementById("lista-carrito");
 const inputBuscar = document.getElementById("input-buscar");
@@ -26,10 +25,13 @@ const pagoClienteInput = document.getElementById("pago-cliente");
 const vueltoEl = document.getElementById("vuelto");
 const btnCobrar = document.getElementById("btn-cobrar");
 
-// Modales y Formulario
+// Modales
 const modalProducto = document.getElementById("modal-producto");
 const btnAbrirModalProd = document.getElementById("btn-abrir-modal-prod");
 const formNuevoProducto = document.getElementById("form-nuevo-producto");
+
+const modalEditar = document.getElementById("modal-editar-producto");
+const formEditarProducto = document.getElementById("form-editar-producto");
 
 const modalHistorial = document.getElementById("modal-historial");
 const btnVerHistorial = document.getElementById("btn-ver-historial");
@@ -37,24 +39,88 @@ const btnVerHistorial = document.getElementById("btn-ver-historial");
 // Renderizar catálogo
 function cargarProductos(filtro = "") {
   gridProductos.innerHTML = "";
+  const busqueda = filtro.trim().toLowerCase();
+
   const filtrados = productos.filter(p => 
-    p.nombre.toLowerCase().includes(filtro.toLowerCase()) || p.id.toString().includes(filtro)
+    p.nombre.toLowerCase().includes(busqueda) || 
+    p.id.toString().includes(busqueda) ||
+    (p.codigo && p.codigo.toLowerCase().includes(busqueda))
   );
 
   filtrados.forEach(p => {
     const card = document.createElement("div");
     card.className = "producto-card";
-    card.onclick = () => agregarAlCarrito(p.id);
+    
+    card.onclick = (e) => {
+      if (!e.target.closest('.btn-icon')) {
+        agregarAlCarrito(p.id);
+      }
+    };
+
     card.innerHTML = `
+      <div class="card-acciones">
+        <button class="btn-icon" onclick="abrirModalEditar(${p.id})">✏️</button>
+        <button class="btn-icon" onclick="eliminarProductoCat(${p.id})">🗑️</button>
+      </div>
       <div class="producto-icon">${p.icono}</div>
       <div class="producto-nombre">${p.nombre}</div>
+      <div class="producto-codigo">${p.codigo ? `Cod: ${p.codigo}` : `#${p.id}`}</div>
       <div class="producto-precio">$${p.precio.toFixed(2)}</div>
     `;
     gridProductos.appendChild(card);
   });
 }
 
-// Abrir y cerrar modales
+// Abrir modal de edición
+function abrirModalEditar(id) {
+  const prod = productos.find(p => p.id === id);
+  if (!prod) return;
+
+  document.getElementById("edit-prod-id").value = prod.id;
+  document.getElementById("edit-prod-codigo").value = prod.codigo || "";
+  document.getElementById("edit-prod-nombre").value = prod.nombre;
+  document.getElementById("edit-prod-precio").value = prod.precio;
+  document.getElementById("edit-prod-icono").value = prod.icono;
+
+  modalEditar.style.display = "flex";
+}
+
+function cerrarModalEditar() {
+  modalEditar.style.display = "none";
+}
+
+// Guardar cambios al editar
+formEditarProducto.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const id = parseInt(document.getElementById("edit-prod-id").value);
+  const codigo = document.getElementById("edit-prod-codigo").value.trim();
+  const nombre = document.getElementById("edit-prod-nombre").value.trim();
+  const precio = parseFloat(document.getElementById("edit-prod-precio").value);
+  const icono = document.getElementById("edit-prod-icono").value.trim();
+
+  const prod = productos.find(p => p.id === id);
+  if (prod) {
+    prod.codigo = codigo;
+    prod.nombre = nombre;
+    prod.precio = precio;
+    prod.icono = icono;
+    localStorage.setItem("pos_productos", JSON.stringify(productos));
+    cargarProductos();
+    actualizarCarrito();
+  }
+  cerrarModalEditar();
+});
+
+// Eliminar producto
+function eliminarProductoCat(id) {
+  if (confirm("¿Estás seguro de eliminar este producto del catálogo?")) {
+    productos = productos.filter(p => p.id !== id);
+    localStorage.setItem("pos_productos", JSON.stringify(productos));
+    cargarProductos();
+  }
+}
+
+// Abrir/Cerrar Modales
 btnAbrirModalProd.addEventListener("click", () => {
   modalProducto.style.display = "flex";
 });
@@ -73,30 +139,31 @@ function cerrarHistorial() {
   modalHistorial.style.display = "none";
 }
 
-// Guardar nuevo producto en array y en LocalStorage
+// Guardar nuevo producto con código de barras
 formNuevoProducto.addEventListener("submit", (e) => {
   e.preventDefault();
-  const nombre = document.getElementById("prod-nombre").value;
+  const codigo = document.getElementById("prod-codigo").value.trim();
+  const nombre = document.getElementById("prod-nombre").value.trim();
   const precio = parseFloat(document.getElementById("prod-precio").value);
-  const icono = document.getElementById("prod-icono").value || "📦";
+  const icono = document.getElementById("prod-icono").value.trim() || "📦";
 
   const nuevoId = productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 101;
 
-  productos.push({ id: nuevoId, nombre, precio, icono });
+  productos.push({ id: nuevoId, codigo, nombre, precio, icono });
   localStorage.setItem("pos_productos", JSON.stringify(productos));
 
   cargarProductos();
   cerrarModalProducto();
 });
 
-// Operaciones del Carrito
+// Carrito
 function agregarAlCarrito(id) {
   const itemExistente = carrito.find(item => item.id === id);
   if (itemExistente) {
     itemExistente.cantidad++;
   } else {
     const producto = productos.find(p => p.id === id);
-    carrito.push({ ...producto, cantidad: 1 });
+    if (producto) carrito.push({ ...producto, cantidad: 1 });
   }
   actualizarCarrito();
 }
@@ -158,7 +225,7 @@ function calcularVuelto(totalVenta) {
   }
 }
 
-// Cobro, Registro en Historial y Generación de Ticket
+// Finalizar venta
 btnCobrar.addEventListener("click", () => {
   const subtotal = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
   const impuesto = subtotal * 0.16;
@@ -196,9 +263,10 @@ function cerrarTicket() {
   carrito = [];
   pagoClienteInput.value = "";
   actualizarCarrito();
+  inputBuscar.focus();
 }
 
-// Actualizar Vista del Historial
+// Historial
 function actualizarModalHistorial() {
   const listaHistorial = document.getElementById("lista-historial");
   const resumenCant = document.getElementById("resumen-cant-ventas");
@@ -230,8 +298,30 @@ function limpiarHistorial() {
   }
 }
 
-// Eventos generales
+// Búsqueda y Lectura de Código de Barras
 inputBuscar.addEventListener("input", (e) => cargarProductos(e.target.value));
+
+inputBuscar.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const texto = inputBuscar.value.trim().toLowerCase();
+    
+    if (!texto) return;
+
+    // Buscar coincidencia exacta por código de barras o por ID
+    const encontrado = productos.find(p => 
+      (p.codigo && p.codigo.toLowerCase() === texto) || 
+      p.id.toString() === texto
+    );
+
+    if (encontrado) {
+      agregarAlCarrito(encontrado.id);
+      inputBuscar.value = "";
+      cargarProductos();
+    }
+  }
+});
+
 pagoClienteInput.addEventListener("input", () => {
   const subtotal = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
   calcularVuelto(subtotal * 1.16);

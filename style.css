@@ -83,10 +83,15 @@ body {
   width: 100%;
   padding: 12px 15px;
   border-radius: 8px;
-  border: 1px solid #334155;
+  border: 1px solid #38bdf8;
   background-color: #0f172a;
   color: #fff;
   font-size: 1rem;
+  outline: none;
+}
+
+.search-box input:focus {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
 }
 
 .productos-grid {
@@ -99,13 +104,14 @@ body {
   background-color: #0f172a;
   border: 1px solid #334155;
   border-radius: 10px;
-  padding: 15px;
+  padding: 12px;
   text-align: center;
   cursor: pointer;
   transition: transform 0.1s, border-color 0.2s;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
 }
 
 .producto-card:hover {
@@ -113,15 +119,43 @@ body {
   transform: translateY(-2px);
 }
 
+.card-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #334155;
+}
+
 .producto-icon {
-  font-size: 2.2rem;
-  margin-bottom: 8px;
+  font-size: 2rem;
+  margin-bottom: 6px;
 }
 
 .producto-nombre {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.producto-codigo {
+  font-size: 0.75rem;
+  color: #64748b;
   margin-bottom: 5px;
+  font-family: monospace;
 }
 
 .producto-precio {
@@ -266,7 +300,6 @@ body {
   align-items: center;
 }
 
-/* Modal Ticket */
 .modal-contenido {
   background-color: #fff;
   color: #000;
@@ -292,7 +325,6 @@ body {
   width: 100%;
 }
 
-/* Modal Formulario Producto */
 .modal-form {
   background-color: #0f172a !important;
   color: #fff !important;
@@ -356,7 +388,6 @@ body {
   cursor: pointer;
 }
 
-/* Modal Historial */
 .modal-historial-box {
   background-color: #0f172a !important;
   color: #fff !important;
