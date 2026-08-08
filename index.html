@@ -3,192 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Punto de Venta - Supermercado</title>
+  <title>Punto de Venta</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="pos-container">
-    <!-- PANEL IZQUIERDO: Catálogo y Búsqueda -->
-    <div class="pos-left">
-      <header class="header">
-        <div>
-          <h1>🛒 SuperPOS</h1>
-          <p>Sistema de Punto de Venta</p>
-        </div>
-        <div class="header-acciones">
-          <button id="btn-ver-historial" class="btn-secundario">📊 Historial del Día</button>
-          <button id="btn-abrir-modal-prod" class="btn-nuevo">+ Nuevo Producto</button>
-        </div>
-      </header>
-
-      <div class="search-box">
-        <input type="text" id="input-buscar" placeholder="🔍 Buscar nombre o escanear código de barras (Presiona Enter)..." autofocus>
+  <div class="container">
+    <header>
+      <h1>Sistema de Punto de Venta</h1>
+      <div class="rate-bar">
+        <span>Tasa del día: 1 USD = </span>
+        <strong id="rate-display">0.00 BS</strong>
+        <button id="btn-change-rate" class="btn-secondary-sm">Actualizar Tasa</button>
       </div>
+    </header>
 
-      <div class="productos-grid" id="productos-grid">
-        <!-- Los productos se cargan dinámicamente -->
-      </div>
-    </div>
+    <div class="main-content">
+      <section class="products-section">
+        <div class="search-box">
+          <input type="text" id="barcode-input" placeholder="Escanear código de barras o ingresar código..." autofocus>
+        </div>
 
-    <!-- PANEL DERECHO: Carrito y Cobro -->
-    <div class="pos-right">
-      <h2>Orden Actual</h2>
-      
-      <div class="tabla-container">
-        <table class="tabla-pos">
+        <div class="catalog">
+          <h2>Catálogo de Productos</h2>
+          <div id="product-list" class="product-grid"></div>
+        </div>
+      </section>
+
+      <section class="cart-section">
+        <h2>Carrito de Compra</h2>
+        <table id="cart-table">
           <thead>
             <tr>
               <th>Producto</th>
               <th>Cant.</th>
-              <th>Precio</th>
-              <th>Total</th>
-              <th></th>
+              <th>USD</th>
+              <th>BS</th>
+              <th>Acción</th>
             </tr>
           </thead>
-          <tbody id="lista-carrito">
-            <!-- Items agregados -->
-          </tbody>
+          <tbody id="cart-body"></tbody>
         </table>
-      </div>
 
-      <div class="totales-panel">
-        <div class="fila-total">
-          <span>Subtotal:</span>
-          <span id="subtotal">$0.00</span>
-        </div>
-        <div class="fila-total">
-          <span>IVA (16%):</span>
-          <span id="impuesto">$0.00</span>
-        </div>
-        <div class="fila-total gran-total">
-          <span>TOTAL:</span>
-          <span id="total">$0.00</span>
-        </div>
-      </div>
+        <div class="cart-summary">
+          <div class="total-row">
+            <span>Total USD:</span>
+            <span id="cart-total-usd">$0.00</span>
+          </div>
+          <div class="total-row bs-row">
+            <span>Total BS:</span>
+            <span id="cart-total-bs">0.00 BS</span>
+          </div>
 
-      <div class="pago-panel">
-        <div class="input-pago">
-          <label for="pago-cliente">Monto Recibido:</label>
-          <input type="number" id="pago-cliente" placeholder="0.00" step="0.01">
+          <div class="payment-method-container">
+            <label for="payment-method">Método de Pago:</label>
+            <select id="payment-method">
+              <option value="Efectivo">Efectivo</option>
+              <option value="Punto de Venta">Punto de Venta (Tarjeta)</option>
+              <option value="BioPago">BioPago</option>
+              <option value="Pago Móvil">Pago Móvil</option>
+            </select>
+          </div>
+
+          <div id="pago-movil-container" class="pago-movil-input-group hidden">
+            <label for="pago-movil-ref">Referencia Pago Móvil (Últimos 4 dígitos):</label>
+            <input type="text" id="pago-movil-ref" maxlength="4" placeholder="Ej: 1234" pattern="[0-9]{4}">
+          </div>
+
+          <button id="btn-checkout" class="btn-primary">Procesar Pago y Generar Factura</button>
         </div>
-        <div class="vuelto-box">
-          <span>Cambio / Vuelto:</span>
-          <strong id="vuelto">$0.00</strong>
-        </div>
-        <button id="btn-cobrar" class="btn-cobrar" disabled>FINALIZAR VENTA</button>
-      </div>
+      </section>
     </div>
-  </div>
 
-  <!-- MODAL NUEVO PRODUCTO -->
-  <div id="modal-producto" class="modal">
-    <div class="modal-contenido modal-form">
-      <h2>Añadir Nuevo Producto</h2>
-      <form id="form-nuevo-producto">
-        <div class="campo">
-          <label>Código de Barras:</label>
-          <input type="text" id="prod-codigo" placeholder="Ej: 750123456789">
+    <!-- Modal Factura -->
+    <div id="receipt-modal" class="modal hidden">
+      <div class="modal-content">
+        <div id="receipt-print-area">
+          <h3>FACTURA DE VENTA</h3>
+          <p id="receipt-date"></p>
+          <p id="receipt-rate-info"></p>
+          <hr>
+          <div id="receipt-items"></div>
+          <hr>
+          <p><strong>Método de Pago:</strong> <span id="receipt-payment-method"></span></p>
+          <p id="receipt-ref-row" class="hidden"><strong>Referencia:</strong> <span id="receipt-ref"></span></p>
+          <p class="receipt-total-line"><strong>TOTAL USD:</strong> <span id="receipt-total-usd"></span></p>
+          <p class="receipt-total-line bs-highlight"><strong>TOTAL BS:</strong> <span id="receipt-total-bs"></span></p>
+          <hr>
+          <p class="receipt-footer">¡Gracias por su compra!</p>
         </div>
-        <div class="campo">
-          <label>Nombre del producto:</label>
-          <input type="text" id="prod-nombre" placeholder="Ej: Cereal de Maíz" required>
-        </div>
-        <div class="campo">
-          <label>Precio ($):</label>
-          <input type="number" id="prod-precio" step="0.01" placeholder="Ej: 3.50" required>
-        </div>
-        <div class="campo">
-          <label>Icono / Emoji:</label>
-          <input type="text" id="prod-icono" placeholder="Ej: 🥣" value="📦" required>
-        </div>
-        <div class="acciones-modal">
-          <button type="button" onclick="cerrarModalProducto()" class="btn-cancelar">Cancelar</button>
-          <button type="submit" class="btn-guardar">Guardar Producto</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL EDITAR PRODUCTO -->
-  <div id="modal-editar-producto" class="modal">
-    <div class="modal-contenido modal-form">
-      <h2>✏️ Editar Producto</h2>
-      <form id="form-editar-producto">
-        <input type="hidden" id="edit-prod-id">
-        <div class="campo">
-          <label>Código de Barras:</label>
-          <input type="text" id="edit-prod-codigo">
-        </div>
-        <div class="campo">
-          <label>Nombre del producto:</label>
-          <input type="text" id="edit-prod-nombre" required>
-        </div>
-        <div class="campo">
-          <label>Precio ($):</label>
-          <input type="number" id="edit-prod-precio" step="0.01" required>
-        </div>
-        <div class="campo">
-          <label>Icono / Emoji:</label>
-          <input type="text" id="edit-prod-icono" required>
-        </div>
-        <div class="acciones-modal">
-          <button type="button" onclick="cerrarModalEditar()" class="btn-cancelar">Cancelar</button>
-          <button type="submit" class="btn-guardar">Guardar Cambios</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- MODAL DE HISTORIAL DE VENTAS -->
-  <div id="modal-historial" class="modal">
-    <div class="modal-contenido modal-historial-box">
-      <h2>📊 Historial de Ventas del Día</h2>
-      
-      <div class="resumen-ventas">
-        <div class="tarjeta-resumen">
-          <span>Total de Ventas</span>
-          <strong id="resumen-cant-ventas">0</strong>
-        </div>
-        <div class="tarjeta-resumen verde">
-          <span>Ingresos Totales</span>
-          <strong id="resumen-ingresos">$0.00</strong>
+        <div class="modal-actions">
+          <button onclick="window.print()" class="btn-secondary">Imprimir Factura</button>
+          <button id="btn-close-modal" class="btn-primary">Cerrar</button>
         </div>
       </div>
-
-      <div class="tabla-historial-container">
-        <table class="tabla-pos">
-          <thead>
-            <tr>
-              <th>Hora</th>
-              <th>Items</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="lista-historial">
-            <!-- Se cargan dinámicamente -->
-          </tbody>
-        </table>
-      </div>
-
-      <div class="acciones-modal">
-        <button type="button" onclick="limpiarHistorial()" class="btn-eliminar-historial">Borrar Historial</button>
-        <button type="button" onclick="cerrarHistorial()" class="btn-cancelar">Cerrar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL DE TICKET / RECIBO -->
-  <div id="modal-ticket" class="modal">
-    <div class="modal-contenido ticket-print">
-      <h2>*** TICKET DE COMPRA ***</h2>
-      <p id="ticket-fecha"></p>
-      <hr>
-      <div id="ticket-items"></div>
-      <hr>
-      <div id="ticket-totales"></div>
-      <hr>
-      <p class="gracias">¡Gracias por su compra!</p>
-      <button onclick="cerrarTicket()" class="btn-cerrar">Nueva Venta</button>
     </div>
   </div>
 
