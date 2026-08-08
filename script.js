@@ -1,4 +1,4 @@
-const products = [
+const defaultProducts = [
   { id: 1, barcode: "7501001", name: "Harina de Maíz", price: 1.20 },
   { id: 2, barcode: "7501002", name: "Arroz 1kg", price: 1.10 },
   { id: 3, barcode: "7501003", name: "Aceite vegetal 1L", price: 2.50 },
@@ -6,9 +6,11 @@ const products = [
   { id: 5, barcode: "7501005", name: "Café 250g", price: 3.00 }
 ];
 
+let products = JSON.parse(localStorage.getItem('products')) || defaultProducts;
 let cart = [];
 let exchangeRate = 0;
 
+// Elementos DOM
 const rateDisplay = document.getElementById('rate-display');
 const btnChangeRate = document.getElementById('btn-change-rate');
 const barcodeInput = document.getElementById('barcode-input');
@@ -23,7 +25,20 @@ const btnCheckout = document.getElementById('btn-checkout');
 const receiptModal = document.getElementById('receipt-modal');
 const btnCloseModal = document.getElementById('btn-close-modal');
 
-// Verificar o solicitar tasa del dólar al iniciar la página
+// Formulario Producto
+const productForm = document.getElementById('product-form');
+const formTitle = document.getElementById('form-title');
+const productIdInput = document.getElementById('product-id');
+const productBarcodeInput = document.getElementById('product-barcode');
+const productNameInput = document.getElementById('product-name');
+const productPriceInput = document.getElementById('product-price');
+const btnSaveProduct = document.getElementById('btn-save-product');
+const btnCancelEdit = document.getElementById('btn-cancel-edit');
+
+function saveProductsToStorage() {
+  localStorage.setItem('products', JSON.stringify(products));
+}
+
 function initExchangeRate() {
   const today = new Date().toISOString().split('T')[0];
   const savedDate = localStorage.getItem('rateDate');
@@ -63,7 +78,78 @@ btnChangeRate.addEventListener('click', () => {
   updateCart();
 });
 
-// Cargar catálogo de productos
+/* --- GESTIÓN DE PRODUCTOS (Crear, Editar, Eliminar) --- */
+productForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  const id = productIdInput.value;
+  const barcode = productBarcodeInput.value.trim();
+  const name = productNameInput.value.trim();
+  const price = parseFloat(productPriceInput.value);
+
+  // Validar código duplicado en creación
+  const existingProduct = products.find(p => p.barcode === barcode && p.id != id);
+  if (existingProduct) {
+    alert('Ya existe un producto registrado con ese mismo código de barras.');
+    return;
+  }
+
+  if (id) {
+    // Editar
+    const index = products.findIndex(p => p.id == id);
+    if (index > -1) {
+      products[index] = { id: Number(id), barcode, name, price };
+    }
+  } else {
+    // Crear
+    const newProduct = {
+      id: Date.now(),
+      barcode,
+      name,
+      price
+    };
+    products.push(newProduct);
+  }
+
+  saveProductsToStorage();
+  resetForm();
+  renderCatalog();
+  updateCart();
+});
+
+function editProduct(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+
+  productIdInput.value = product.id;
+  productBarcodeInput.value = product.barcode;
+  productNameInput.value = product.name;
+  productPriceInput.value = product.price;
+
+  formTitle.textContent = 'Editar Producto';
+  btnSaveProduct.textContent = 'Actualizar';
+  btnCancelEdit.classList.remove('hidden');
+}
+
+function deleteProduct(id) {
+  if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+    products = products.filter(p => p.id !== id);
+    saveProductsToStorage();
+    renderCatalog();
+  }
+}
+
+function resetForm() {
+  productIdInput.value = '';
+  productForm.reset();
+  formTitle.textContent = 'Crear Nuevo Producto';
+  btnSaveProduct.textContent = 'Guardar Producto';
+  btnCancelEdit.classList.add('hidden');
+}
+
+btnCancelEdit.addEventListener('click', resetForm);
+
+/* --- RENDERIZADO DE CATÁLOGO --- */
 function renderCatalog() {
   productList.innerHTML = '';
   products.forEach(product => {
@@ -71,17 +157,27 @@ function renderCatalog() {
     const card = document.createElement('div');
     card.className = 'product-card';
     card.innerHTML = `
-      <h3>${product.name}</h3>
-      <p>$${product.price.toFixed(2)}</p>
-      <div class="price-bs">${priceBs.toFixed(2)} BS</div>
-      <small>Cód: ${product.barcode}</small>
+      <div>
+        <h3>${product.name}</h3>
+        <div class="price-usd">$${product.price.toFixed(2)}</div>
+        <div class="price-bs">${priceBs.toFixed(2)} BS</div>
+        <small>Cód: ${product.barcode}</small>
+      </div>
+      <div class="product-actions">
+        <button class="btn-card-add" onclick="addToCartById(${product.id})">+ Agregar</button>
+        <button class="btn-card-edit" onclick="editProduct(${product.id})" title="Editar">✏️</button>
+        <button class="btn-card-delete" onclick="deleteProduct(${product.id})" title="Eliminar">🗑️</button>
+      </div>
     `;
-    card.addEventListener('click', () => addToCart(product));
     productList.appendChild(card);
   });
 }
 
-// Agregar al carrito
+function addToCartById(id) {
+  const product = products.find(p => p.id === id);
+  if (product) addToCart(product);
+}
+
 function addToCart(product) {
   const existingIndex = cart.findIndex(item => item.id === product.id);
   if (existingIndex > -1) {
@@ -92,7 +188,6 @@ function addToCart(product) {
   updateCart();
 }
 
-// Actualizar vista del carrito
 function updateCart() {
   cartBody.innerHTML = '';
   let totalUsd = 0;
@@ -104,11 +199,11 @@ function updateCart() {
 
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${item.name}</td>
+      <td><strong>${item.name}</strong></td>
       <td>${item.quantity}</td>
       <td>$${itemTotalUsd.toFixed(2)}</td>
       <td>${itemTotalBs.toFixed(2)} BS</td>
-      <td><button class="btn-remove" onclick="removeFromCart(${index})">X</button></td>
+      <td><button class="btn-remove" onclick="removeFromCart(${index})">×</button></td>
     `;
     cartBody.appendChild(row);
   });
@@ -118,13 +213,11 @@ function updateCart() {
   cartTotalBs.textContent = `${totalBs.toFixed(2)} BS`;
 }
 
-// Eliminar ítem del carrito
 function removeFromCart(index) {
   cart.splice(index, 1);
   updateCart();
 }
 
-// Mostrar / ocultar campo de Pago Móvil
 paymentMethodSelect.addEventListener('change', (e) => {
   if (e.target.value === 'Pago Móvil') {
     pagoMovilContainer.classList.remove('hidden');
@@ -135,7 +228,6 @@ paymentMethodSelect.addEventListener('change', (e) => {
   }
 });
 
-// Escáner de código de barras
 barcodeInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') {
     const code = barcodeInput.value.trim();
@@ -151,7 +243,6 @@ barcodeInput.addEventListener('keydown', (e) => {
   }
 });
 
-// Procesar Pago y Generar Factura
 btnCheckout.addEventListener('click', () => {
   if (cart.length === 0) {
     alert('El carrito está vacío.');
@@ -169,7 +260,6 @@ btnCheckout.addEventListener('click', () => {
     }
   }
 
-  // Generar datos de factura
   document.getElementById('receipt-date').textContent = `Fecha: ${new Date().toLocaleString()}`;
   document.getElementById('receipt-rate-info').textContent = `Tasa del día: 1 USD = ${exchangeRate.toFixed(2)} BS`;
   document.getElementById('receipt-payment-method').textContent = selectedMethod;
@@ -192,7 +282,7 @@ btnCheckout.addEventListener('click', () => {
     totalUsd += itemTotalUsd;
 
     const div = document.createElement('div');
-    div.className = 'receipt-item';
+    div.className = 'receipt-item-row';
     div.innerHTML = `
       <span>${item.quantity}x ${item.name}</span>
       <span>$${itemTotalUsd.toFixed(2)} (${itemTotalBs.toFixed(2)} BS)</span>
@@ -207,7 +297,6 @@ btnCheckout.addEventListener('click', () => {
   receiptModal.classList.remove('hidden');
 });
 
-// Cerrar factura y limpiar carrito
 btnCloseModal.addEventListener('click', () => {
   receiptModal.classList.add('hidden');
   cart = [];
@@ -218,5 +307,4 @@ btnCloseModal.addEventListener('click', () => {
   barcodeInput.focus();
 });
 
-// Inicializar sistema y pedir tasa
 initExchangeRate();
